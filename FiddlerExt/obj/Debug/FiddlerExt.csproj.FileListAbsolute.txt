@@ -1,0 +1,14 @@
+c:\temp\FiddlerExt\FiddlerExt\bin\Debug\FiddlerExt.dll
+c:\temp\FiddlerExt\FiddlerExt\bin\Debug\FiddlerExt.pdb
+c:\temp\FiddlerExt\FiddlerExt\bin\Debug\Fiddler.exe
+c:\temp\FiddlerExt\FiddlerExt\bin\Debug\Telerik.Analytics.dll
+c:\temp\FiddlerExt\FiddlerExt\bin\Debug\Xceed.Zip.v5.4.dll
+c:\temp\FiddlerExt\FiddlerExt\bin\Debug\Xceed.FileSystem.v5.4.dll
+c:\temp\FiddlerExt\FiddlerExt\bin\Debug\Xceed.Compression.Formats.v5.4.dll
+c:\temp\FiddlerExt\FiddlerExt\bin\Debug\Xceed.Compression.v5.4.dll
+c:\temp\FiddlerExt\FiddlerExt\bin\Debug\Fiddler.pdb
+c:\temp\FiddlerExt\FiddlerExt\obj\Debug\FiddlerExt.dll
+c:\temp\FiddlerExt\FiddlerExt\obj\Debug\FiddlerExt.pdb
+c:\temp\FiddlerExt\FiddlerExt\obj\Debug\FiddlerExt.UserControl1.resources
+c:\temp\FiddlerExt\FiddlerExt\obj\Debug\FiddlerExt.csproj.GenerateResource.Cache
+c:\temp\FiddlerExt\FiddlerExt\obj\Debug\FiddlerExt.csprojResolveAssemblyReference.cache
