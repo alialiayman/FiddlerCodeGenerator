@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.Windows.Forms.TreeNode treeNode1 = new System.Windows.Forms.TreeNode("Files");
             this.btnCopyCode = new System.Windows.Forms.Button();
             this.txtcode = new System.Windows.Forms.RichTextBox();
             this.panel1 = new System.Windows.Forms.Panel();
@@ -39,7 +40,13 @@
             this.label1 = new System.Windows.Forms.Label();
             this.dfsInputClass = new System.Windows.Forms.TextBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.treeFiles = new System.Windows.Forms.TreeView();
             this.panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
+            this.splitContainer1.Panel1.SuspendLayout();
+            this.splitContainer1.Panel2.SuspendLayout();
+            this.splitContainer1.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnCopyCode
@@ -55,13 +62,11 @@
             // 
             // txtcode
             // 
-            this.txtcode.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtcode.AutoWordSelection = true;
-            this.txtcode.Location = new System.Drawing.Point(0, 91);
+            this.txtcode.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.txtcode.Location = new System.Drawing.Point(0, 0);
             this.txtcode.Name = "txtcode";
-            this.txtcode.Size = new System.Drawing.Size(1082, 439);
+            this.txtcode.Size = new System.Drawing.Size(768, 434);
             this.txtcode.TabIndex = 3;
             this.txtcode.Text = "";
             // 
@@ -140,13 +145,46 @@
             this.toolTip1.SetToolTip(this.dfsInputClass, "Change input class");
             this.dfsInputClass.Leave += new System.EventHandler(this.dfsInputClass_Leave);
             // 
+            // splitContainer1
+            // 
+            this.splitContainer1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.splitContainer1.Location = new System.Drawing.Point(3, 96);
+            this.splitContainer1.Name = "splitContainer1";
+            // 
+            // splitContainer1.Panel1
+            // 
+            this.splitContainer1.Panel1.Controls.Add(this.treeFiles);
+            // 
+            // splitContainer1.Panel2
+            // 
+            this.splitContainer1.Panel2.Controls.Add(this.txtcode);
+            this.splitContainer1.Size = new System.Drawing.Size(1079, 434);
+            this.splitContainer1.SplitterDistance = 307;
+            this.splitContainer1.TabIndex = 5;
+            // 
+            // treeFiles
+            // 
+            this.treeFiles.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.treeFiles.LabelEdit = true;
+            this.treeFiles.Location = new System.Drawing.Point(0, 0);
+            this.treeFiles.Name = "treeFiles";
+            treeNode1.Name = "Node0";
+            treeNode1.Text = "Files";
+            this.treeFiles.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
+            treeNode1});
+            this.treeFiles.Size = new System.Drawing.Size(307, 434);
+            this.treeFiles.TabIndex = 0;
+            this.treeFiles.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.treeFiles_NodeMouseClick);
+            // 
             // UserControl1
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.panel1);
-            this.Controls.Add(this.txtcode);
             this.Name = "UserControl1";
             this.Size = new System.Drawing.Size(1082, 533);
             this.DragDrop += new System.Windows.Forms.DragEventHandler(this.UserControl1_DragDrop);
@@ -154,6 +192,10 @@
             this.DragOver += new System.Windows.Forms.DragEventHandler(this.UserControl1_DragOver);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
+            this.splitContainer1.Panel1.ResumeLayout(false);
+            this.splitContainer1.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
+            this.splitContainer1.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -170,5 +212,7 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox dfsUrl;
         private System.Windows.Forms.ToolTip toolTip1;
+        private System.Windows.Forms.SplitContainer splitContainer1;
+        private System.Windows.Forms.TreeView treeFiles;
     }
 }

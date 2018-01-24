@@ -12,7 +12,7 @@ namespace onSoft
         public CodeGen()
         {
             _headersOverride.Add("User-Agent",
-                "User -Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");
+                "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");
             _headersOverride.Add("Connection", string.Empty);
             _headersOverride.Add("Accept-Encoding", string.Empty);
             _headersOverride.Add("Content-Length", string.Empty);
@@ -33,7 +33,7 @@ namespace onSoft
         private string MakeGetRequest(Session oSession)
         {
             var code = new StringBuilder();
-            AppendLine(code, 3, "public IRestResponse<" + OutputClass + "> Login()");
+            AppendLine(code, 3, $"public IRestResponse<{OutputClass}> Get{oSession.id}()");
             AppendLine(code, 3, "{");
 
             if (Url.Contains("{"))
@@ -80,17 +80,24 @@ namespace onSoft
         private void AddHeader(StringBuilder code, HTTPHeaderItem header)
         {
             if (_headersOverride.ContainsKey(header.Name) && _headersOverride[header.Name] != string.Empty)
-                    AppendLine(code, 4, "request.AddHeader(\"" + header.Name + "\", \"" +
-                                        _headersOverride[header.Name] +
-                                        "\")");
+            {
+                AppendLine(code, 4, "request.AddHeader(\"" + header.Name + "\", \"" +
+                                    _headersOverride[header.Name] +
+                                    "\")");
+            }
+            else if (_headersOverride.ContainsKey(header.Name) && _headersOverride[header.Name] == string.Empty)
+            {
+            }
             else
+            {
                 AppendLine(code, 4, "request.AddHeader(\"" + header.Name + "\", \"" + header.Value + "\")");
+            }
         }
 
         private string MakePostRequest(Session oSession)
         {
             var code = new StringBuilder();
-            code.AppendLine("\tpublic IRestResponse<" + OutputClass + "> SaveLoan(" + InputClass + " input)");
+            code.AppendLine($"\tpublic IRestResponse<{OutputClass}> Post{oSession.id}({InputClass} input)");
             code.AppendLine("\t{");
             code.AppendLine("\tvar client = new RestClient(\"" + oSession.fullUrl + "\");");
             code.AppendLine("\tvar request = new RestRequest(\"\",Method.POST);");
@@ -100,7 +107,7 @@ namespace onSoft
 
 
             foreach (var header in oSession.RequestHeaders)
-                code.AppendLine("request.AddHeader(\"" + header.Name + "\", \"" + header.Value + "\")");
+                AddHeader(code, header);
 
             code.AppendLine("\tvar requestObject = input;");
             code.AppendLine("\trequest.AddJsonBody(requestObject);");

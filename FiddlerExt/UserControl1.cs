@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Windows.Forms;
 using Fiddler;
 
@@ -6,7 +7,7 @@ namespace onSoft
 {
     public partial class UserControl1 : UserControl
     {
-        private Session _sessionData;
+        private Session[] _sessionsData;
 
         public UserControl1()
         {
@@ -15,28 +16,41 @@ namespace onSoft
 
         private void UserControl1_DragDrop(object sender, DragEventArgs e)
         {
-            _sessionData = ((Session[]) e.Data.GetData("Fiddler.Session[]"))[0];
-            dfsUrl.Text = _sessionData.fullUrl;
-            dfsInputClass.Text = "InputClass";
-            dfsOutputClass.Text = "OutputClass";
-            GenerateCode();
+            _sessionsData = ((Session[]) e.Data.GetData("Fiddler.Session[]"));
+            var rootDir = Path.Combine(Application.StartupPath,"RestSharp");
+            if (!Directory.Exists(rootDir)) Directory.CreateDirectory(rootDir);
+            treeFiles.Nodes[0].Text = rootDir;
+            foreach (var oneSession in _sessionsData)
+            {
+                dfsUrl.Text = oneSession.fullUrl;
+                dfsInputClass.Text = "InputClass";
+                dfsOutputClass.Text = "OutputClass";
+                var code = GenerateCode(oneSession);
+                File.WriteAllText($"{oneSession.id}.cs", code);
+                treeFiles.Nodes[0].Nodes.Add($"{oneSession.id}.cs");
+
+            }
+            treeFiles.Nodes[0].ExpandAll();
+
         }
 
-        private void GenerateCode()
+        private string GenerateCode(Session inputsession)
         {
             var cg = new CodeGen();
 
 
-            if (_sessionData != null)
+            if (inputsession != null)
             {
-                dfsInputClass.Enabled = _sessionData.RequestMethod != "GET";
+                dfsInputClass.Enabled = inputsession.RequestMethod != "GET";
                 cg.InputClass = dfsInputClass.Text;
                 cg.OutputClass = dfsOutputClass.Text;
                 cg.Url = dfsUrl.Text;
-                txtcode.Text =
+                return 
                     cg.MakeRestSharpCode(
-                        _sessionData); 
+                        inputsession); 
             }
+
+            return string.Empty;
         }
 
         private void UserControl1_DragEnter(object sender, DragEventArgs e)
@@ -56,17 +70,23 @@ namespace onSoft
 
         private void dfsOutputClass_Leave(object sender, EventArgs e)
         {
-            GenerateCode();
+            //GenerateCode();
         }
 
         private void dfsInputClass_Leave(object sender, EventArgs e)
         {
-            GenerateCode();
+            //GenerateCode();
         }
 
         private void dfsUrl_Leave(object sender, EventArgs e)
         {
-            GenerateCode();
+            //GenerateCode();
+        }
+
+        private void treeFiles_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            if (File.Exists($"{e.Node.Text}"))
+            txtcode.Text = File.ReadAllText($"{e.Node.Text}");
         }
     }
 }
