@@ -8,3 +8,7 @@ Copy FiddlerRequestToRestSharp.dll into your Fiddler2\Scripts folder.
 You’ll need to restart Fiddler if it’s already running.
 
 You can watch this video for more information
+
+
+![requesttorestsharp](https://user-images.githubusercontent.com/9623964/35362009-754e29f6-0118-11e8-8e51-5d8a69fea4de.PNG)
+
