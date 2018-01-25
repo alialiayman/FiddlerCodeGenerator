@@ -63,6 +63,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
+    <None Include="SampleFiddlerSessions\MofaLogin.saz" />
+    <None Include="SampleFiddlerSessions\TawafLoginSendLogout.saz" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="bin\Release\FiddlerRequestToRestSharp.dll" />
