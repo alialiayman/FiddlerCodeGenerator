@@ -1,0 +1,17 @@
+C:\Projects\RequestToRestSharp\RestExample\bin\Debug\RestExample.exe.config
+C:\Projects\RequestToRestSharp\RestExample\bin\Debug\RestExample.exe
+C:\Projects\RequestToRestSharp\RestExample\bin\Debug\RestExample.pdb
+C:\Projects\RequestToRestSharp\RestExample\bin\Debug\HtmlAgilityPack.dll
+C:\Projects\RequestToRestSharp\RestExample\bin\Debug\Newtonsoft.Json.dll
+C:\Projects\RequestToRestSharp\RestExample\bin\Debug\RestSharp.dll
+C:\Projects\RequestToRestSharp\RestExample\bin\Debug\System.ValueTuple.dll
+C:\Projects\RequestToRestSharp\RestExample\bin\Debug\HtmlAgilityPack.pdb
+C:\Projects\RequestToRestSharp\RestExample\bin\Debug\HtmlAgilityPack.xml
+C:\Projects\RequestToRestSharp\RestExample\bin\Debug\Newtonsoft.Json.xml
+C:\Projects\RequestToRestSharp\RestExample\bin\Debug\System.ValueTuple.xml
+C:\Projects\RequestToRestSharp\RestExample\obj\Debug\RestExample.Form1.resources
+C:\Projects\RequestToRestSharp\RestExample\obj\Debug\RestExample.Properties.Resources.resources
+C:\Projects\RequestToRestSharp\RestExample\obj\Debug\RestExample.csproj.GenerateResource.Cache
+C:\Projects\RequestToRestSharp\RestExample\obj\Debug\RestExample.exe
+C:\Projects\RequestToRestSharp\RestExample\obj\Debug\RestExample.pdb
+C:\Projects\RequestToRestSharp\RestExample\obj\Debug\RestExample.csprojResolveAssemblyReference.cache

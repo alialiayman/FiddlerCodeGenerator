@@ -24,3 +24,4 @@ C:\Projects\RequestToRestSharp\FiddlerExt\obj\Release\RequestToRestSharp.csproj.
 C:\Projects\RequestToRestSharp\FiddlerExt\obj\Release\FiddlerRequestToRestSharp.dll
 C:\Projects\RequestToRestSharp\FiddlerExt\obj\Release\FiddlerRequestToRestSharp.pdb
 C:\Projects\RequestToRestSharp\FiddlerExt\obj\Release\onSoft.UserControl1.resources
+C:\Projects\RequestToRestSharp\FiddlerExt\obj\Release\RequestToRestSharp.csprojResolveAssemblyReference.cache

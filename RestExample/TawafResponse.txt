@@ -1,0 +1,656 @@
+﻿using onHttp;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Runtime.Serialization.Json;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Windows.Forms;
+
+
+namespace onService
+{
+    public class TawafResponse
+    {
+        public const int Hours = -7;
+        public readonly CookieContainer CookieJar = new CookieContainer();
+        private List<string> _allCodesToGetGroups = new List<string>();
+        public string ThirtyTwoDigitCode { get; set; }
+        public string JavaLangCode { get; set; }
+        public string JavaUtilCode { get; set; }
+        public string RepMofaWrapper { get; set; }
+        public string GroupWrapper { get; set; }
+        public string BoxVer { get; set; }
+        public string CodeToGetGroups { get; set; }
+        public DateTime LastThirtyTwoDigitDate { get; set; }
+
+        StringBuilder details = new StringBuilder();
+
+        public TawafConfig Config = null;
+
+        public string tawafYear = "48";
+
+        public TawafResponse()
+        {
+            var dal = new DAL();
+            Config = dal.GetTawafConfig(null);
+            tawafYear = Utility.GetCurrentHijriYear().ToString().Substring(2);
+        }
+
+        public void RenewTawafConfig(int skip)
+        {
+            var dal = new DAL();
+            Config = dal.GetTawafConfig(skip);
+        }
+        private Dictionary<string, string> DownloadHtml(string url, List<string> regexList, string localFile = "")
+        {
+            var output = new Dictionary<string, string>();
+            if (string.IsNullOrEmpty(localFile))
+            {
+                var httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
+                httpWebRequest.Method = "GET";
+                httpWebRequest.Headers.Add("Accept-Encoding", "gzip");
+                httpWebRequest.CookieContainer = CookieJar;
+                var httpWebReponse = (HttpWebResponse)httpWebRequest.GetResponse();
+
+                var stream = httpWebReponse.GetResponseStream();
+                if (stream != null)
+                {
+                    var reader = new StreamReader(stream);
+                    output.Add("html", reader.ReadToEnd());
+                }
+            }
+            else
+            {
+                output.Add("html", File.ReadAllText(localFile));
+            }
+            foreach (var regexItem in regexList)
+            {
+                var r = new Regex(regexItem, RegexOptions.IgnoreCase);
+                var matches = (from object aMatch in r.Matches(output["html"]) select aMatch.ToString()).ToList();
+                output.Add(regexItem, string.Join(",", matches));
+            }
+            return output;
+        }
+
+        private Dictionary<string, string> DownloadHtml(string url, string postData, string contentType,
+            Dictionary<string, string> headers, List<string> regexList)
+        {
+            var output = new Dictionary<string, string>();
+            var httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
+
+            httpWebRequest.Method = "POST";
+            httpWebRequest.CookieContainer = CookieJar;
+            httpWebRequest.ContentType = contentType;
+            httpWebRequest.Host = "tawaf.com.sa";
+            httpWebRequest.UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.103 Safari/537.36";
+            foreach (var header in headers)
+            {
+                httpWebRequest.Headers[header.Key] = header.Value;
+            }
+
+            httpWebRequest.Headers.Add("DNT", "1");
+            httpWebRequest.Headers.Add("Origin", "http://tawaf.com.sa");
+            httpWebRequest.Headers.Add("Accept-Language", "en-US,en;q=0.8,ar;q=0.6");
+            //_httpWebRequest.Headers.Add("Content-Type: text/x-gwt-rpc; charset=UTF-8");
+
+            httpWebRequest.Headers.Add("Cache-Control", "max-age=0");
+            httpWebRequest.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";
+            httpWebRequest.ServicePoint.Expect100Continue = false;
+            httpWebRequest.Expect = "";
+            httpWebRequest.KeepAlive = true;
+
+            //Referer: http://tawaf.com.sa/tawaf" + tawafYear + "/index.html?locale=en
+
+
+            var data = Encoding.ASCII.GetBytes(postData);
+            httpWebRequest.ContentLength = data.Length;
+
+            using (var streamv = httpWebRequest.GetRequestStream())
+            {
+                streamv.Write(data, 0, data.Length);
+            }
+
+
+            var httpWebReponse = (HttpWebResponse)httpWebRequest.GetResponse();
+
+            var stream = httpWebReponse.GetResponseStream();
+            if (stream != null)
+            {
+                var reader = new StreamReader(stream);
+                output.Add("html", reader.ReadToEnd());
+            }
+
+            if (output["html"].Contains("ServiceException"))
+            {
+                output.Add("Error", output["html"]);
+                return output;
+            }
+            foreach (var regexItem in regexList)
+            {
+                var r = new Regex(regexItem, RegexOptions.IgnoreCase);
+                var matches =
+                    (from object aMatch in r.Matches(output["html"]) select aMatch.ToString().Replace(",", string.Empty))
+                        .ToList();
+                output.Add(regexItem, string.Join(",", matches));
+            }
+            return output;
+        }
+
+        StringBuilder tawafReport = new StringBuilder();
+
+        private void GetThirtyTwoDigitCode()
+        {
+            ThirtyTwoDigitCode = Config.ThirtyTwoCode;
+            details.AppendFormat("32 Digits Code used {0} you can get this code by loggin in and capture the URL redirected to", ThirtyTwoDigitCode);
+
+            //Error area - coming here means error
+            //Coming here means error in getting group codes in this case flush the serialized object
+            //LastThirtyTwoDigitDate = DateTime.Now.AddYears(-1);
+            //CodeToGetGroups = string.Empty;
+            //Serialize(this);
+
+            // return "Error:" + "Could not get available groups using any of the codes " + string.Join(",", _allCodesToGetGroups);
+
+            //var ThirtyTwoDigitRegEx = Utility.GetIniValue("32DigitsRegEx", "'[0-9A-Z]{32}'");
+            //var thirtyTwoDigitsInput = new List<string> { ThirtyTwoDigitRegEx };
+            //var result = DownloadHtml("http://tawaf.com.sa/tawaf" + tawafYear + "/etawaf/etawaf.nocache.js",
+            //    thirtyTwoDigitsInput);
+            //var ThirtyTwoDigitLocation = Utility.GetIniValue("32DigitsLocation", 11);
+
+            //ThirtyTwoDigitCode = result[ThirtyTwoDigitRegEx].Split(',')[ThirtyTwoDigitLocation].Replace("'", "");
+
+            //var ThirtyTwoKey = Regex.Match(result["html"], @",[\w]{2,5}='" + ThirtyTwoDigitCode);
+            //tawafReport.AppendFormat("<br/> 32 Digits RegEx {0} At {1} Found {2} from http://tawaf.com.sa/tawaf" + tawafYear + "/etawaf/etawaf.nocache.js", ThirtyTwoDigitRegEx, ThirtyTwoDigitLocation, ThirtyTwoKey.ToString());
+
+
+            //_wbTawaf.ScriptErrorsSuppressed = true;
+            //_wbTawaf.DocumentCompleted += wbTawaf_DocumentCompleted;
+            //_wbTawaf.Navigate("http://tawaf.com.sa/tawaf" + tawafYear + "/index.html?locale=en");
+
+        }
+
+        //void wbTawaf_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
+        //{
+
+        //    var url = e.Url.ToString();
+        //    if (url.Contains("javascript")) return;
+
+        //    if (Regex.Match(url, "http://tawaf.com.sa/tawaf" + tawafYear + "/etawaf/[a-zA-Z0-9]{32}.cache.html").Success)
+        //    {
+        //        ThirtyTwoDigitCode = Regex.Match(url, "[a-zA-Z0-9]{32}").ToString();
+        //        //SetLogin();
+
+        //        GetGwtParameters();
+        //        CodeToGetGroups = string.Empty;
+
+        //        var lastError = string.Empty;
+        //        if (!string.IsNullOrEmpty(CodeToGetGroups)) //If there is a good code to get groups do not try all the codes
+        //        {
+        //            _allCodesToGetGroups = new List<string> { CodeToGetGroups };
+        //        }
+        //        var additionalHardcodedCode = string.Empty;
+        //        if (File.Exists("TawafCodeToGetGroups.txt"))
+        //            additionalHardcodedCode = File.ReadAllText("TawafCodeToGetGroups.txt");
+        //        else
+        //            File.WriteAllText("TawafCodeToGetGroups.txt", string.Empty);
+        //        _allCodesToGetGroups.Add(additionalHardcodedCode);
+        //        _allCodesToGetGroups.Add("FFE9D62A437D7AF609485BAA2E3C6222");
+        //        _allCodesToGetGroups.Reverse();
+        //        foreach (var codetotry in _allCodesToGetGroups)
+        //        {
+        //            if (string.IsNullOrEmpty(codetotry)) continue;
+        //            var loginCode = Regex.Match(_userName,@"\d+").ToString();
+        //            var postDataGetGroups = "6|0|6|http://www.tawaf.com.sa/tawaf" + tawafYear + "/etawaf/|" + codetotry +
+        //                                    "|com.gwt.umra.client.async.V_Mut_Groups_Service|getTableData|" +
+        //                                    GroupWrapper +
+        //                                    "|from V_Mut_Groups where 1=1 AND grp_status=10 AND uo_branch_code=0 AND ea_code = " +
+        //                                    loginCode + " AND grp_arch=0|1|2|3|4|1|5|5|0|0|0|0|0|0|100|6|0|0|0|0|";
+
+        //            //6|0|6|http://tawaf.com.sa/tawaf" + tawafYear + "/etawaf/|FFE9D62A437D7AF609485BAA2E3C6222|com.gwt.umra.client.async.V_Mut_Groups_Service|getTableData|com.gwt.umra.shared.wrapper.V_Mut_Groups_Wrapper/2453305918|from V_Mut_Groups where 1=1 AND grp_status=10 AND uo_code = 226  AND uo_code=226 AND uo_branch_code=0 AND ea_code=21401 AND grp_arch=0|1|2|3|4|1|5|5|0|0|0|0|0|0|10|6|0|0|0|0|
+        //            var getGroupsInput = new List<string> { @",[0-9]{6}," };
+        //            var inputDictionaryGetGroups = new Dictionary<string, string>
+        //        {
+        //            {"X-GWT-Module-Base", "http://tawaf.com.sa/tawaf" + tawafYear + "/etawaf/"},
+        //            {"X-GWT-Permutation", ThirtyTwoDigitCode}
+        //        };
+        //            var getGroupResults = DownloadHtml("http://tawaf.com.sa/tawaf" + tawafYear + "/etawaf/V_Mut_Groups",
+        //                postDataGetGroups, "text/x-gwt-rpc; charset=UTF-8", inputDictionaryGetGroups, getGroupsInput);
+        //            if (getGroupResults.ContainsKey("Error"))
+        //            {
+        //                continue;
+        //            }
+
+        //            if (string.IsNullOrEmpty(CodeToGetGroups)) //Coming Here means one code was good
+        //            {
+        //                LastThirtyTwoDigitDate = DateTime.Now;
+        //                CodeToGetGroups = codetotry;
+        //                Serialize(this);
+        //            }
+        //            AvailableGroups= getGroupResults[@",[0-9]{6},"];
+        //        }
+
+
+        //        //Error area - coming here means error
+        //        //Coming here means error in getting group codes in this case flush the serialized object
+        //        //LastThirtyTwoDigitDate = DateTime.Now.AddYears(-1);
+        //        //CodeToGetGroups = string.Empty;
+        //        //Serialize(this);
+
+        //       // return "Error:" + "Could not get available groups using any of the codes " + string.Join(",", _allCodesToGetGroups);
+        //    }
+
+
+        //    //<div class="gwt-Label f12 balackUndLine">1</div>
+        //}
+
+        private void GetGwtParameters()
+        {
+            var javaCodesInput = new List<string> { @"java.util.ArrayList/[0-9]{1,}", @"java.lang.String/[0-9]{1,}" };
+
+            var repMofaInput = new List<string>
+            {
+                @"java.util.ArrayList/[0-9]{1,}",
+                @"java.lang.String/[0-9]{1,}",
+                @"com.gwt.umra.shared.wrapper.Rep_Mofa_Wrapper/[0-9]{1,}",
+                @"com.gwt.umra.shared.wrapper.V_Mut_Groups_Wrapper/[0-9]{1,}",
+                @"'9C',[a-zA-Z0-9]{3,}='[a-zA-Z0-9]{9,}',[a-zA-Z0-9]{3,}='[a-zA-Z0-9]{9,}',[a-zA-Z0-9]{3,}='([a-zA-Z0-9]{9,})'",
+                @"'External_Agents_Wrapper',([\w\$]{3}='[\w]{10,}',)+"
+            };
+
+            //var result =
+            //    DownloadHtml(
+            //        "http://tawaf.com.sa/tawaf" + tawafYear + "/etawaf/" + ThirtyTwoDigitCode + ".cache.html",
+            //        repMofaInput);
+
+            JavaUtilCode = Config.javautilArrayList; // Utility.GetIniValue("java.util.ArrayList", "java.util.ArrayList/3821976829");
+            //result[@"java.util.ArrayList/[0-9]{1,}"].Split(',')[0].Replace("'", "");
+            details.AppendFormat("\njava.util.ArrayList used {0} you can get it from {1}", JavaUtilCode, "http://tawaf.com.sa/tawaf" + tawafYear + "/etawaf/" + ThirtyTwoDigitCode + ".cache.html");
+            JavaLangCode = Config.javalangString; // Utility.GetIniValue("java.lang.String", "java.lang.String/2004016611");
+            //result[@"java.lang.String/[0-9]{1,}"].Split(',')[0].Replace("'", "");
+            details.AppendFormat("\njava.lang.String used {0} you can get it from {1}", JavaLangCode, "http://tawaf.com.sa/tawaf" + tawafYear + "/etawaf/" + ThirtyTwoDigitCode + ".cache.html");
+
+            RepMofaWrapper = Config.Rep_Mofa_Wrapper; // Utility.GetIniValue("com.gwt.umra.shared.wrapper.Rep_Mofa_Wrapper", "com.gwt.umra.shared.wrapper.Rep_Mofa_Wrapper/2349924864");
+
+            details.AppendFormat("\ncom.gwt.umra.shared.wrapper.Rep_Mofa_Wrapperused {0} you can get it from {1}", RepMofaWrapper, "http://tawaf.com.sa/tawaf" + tawafYear + "/etawaf/" + ThirtyTwoDigitCode + ".cache.html");
+
+
+            GroupWrapper = Config.V_Mut_Groups_Wrapper; // Utility.GetIniValue("com.gwt.umra.shared.wrapper.V_Mut_Groups_Wrapper", "com.gwt.umra.shared.wrapper.V_Mut_Groups_Wrapper/2453305918");
+
+            details.AppendFormat("\ncom.gwt.umra.shared.wrapper.V_Mut_Groups_Wrapper used {0} you can get it from {1}", GroupWrapper, "http://tawaf.com.sa/tawaf" + tawafYear + "/etawaf/" + ThirtyTwoDigitCode + ".cache.html");
+
+            //'External_Agents_Wrapper',([\w]{3}='[\w]{10,}',)+
+
+            // repMofaInput = new List<string>
+            //{
+            //    @"com.gwt.umra.shared.wrapper.Rep_Mofa_Wrapper/[0-9]{1,}",
+            //    @"com.gwt.umra.shared.wrapper.V_Mut_Groups_Wrapper/[0-9]{1,}",
+            //    @"'9C',[a-zA-Z0-9]{3,}='[a-zA-Z0-9]{9,}',[a-zA-Z0-9]{3,}='[a-zA-Z0-9]{9,}',[a-zA-Z0-9]{3,}='([a-zA-Z0-9]{9,})'",
+            //    @"'External_Agents_Wrapper',([\w\$]{3}='[\w]{10,}',)+"
+            //};
+
+
+            //var result2 =
+            //    DownloadHtml(
+            //        "http://tawaf.com.sa/tawaf" + tawafYear + "/etawaf/deferredjs/" + ThirtyTwoDigitCode +
+            //        "/98.cache.js", repMofaInput);
+
+
+            BoxVer = Config.Rep_Mofa_BoxVer; // Utility.GetIniValue("BoxVer","9D4E443155DFF7C5602A2489AD171150");
+
+            //var tempcodeToGetGroups = result2[
+            //    @"'External_Agents_Wrapper',([\w\$]{3}='[\w]{10,}',)+"
+            //    ].Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries).Skip(1).ToList();
+            //foreach (var tempCode in tempcodeToGetGroups)
+            //{
+            //    if (tempCode.Contains("="))
+            //        _allCodesToGetGroups.Add(tempCode.Split('=')[1].Replace("'", string.Empty));
+            //}
+
+            //_allCodesToGetGroups.Reverse();
+
+            CodeToGetGroups = Config.v_Mut_Groups_CodeToGetGroups; // Utility.GetIniValue("CodeToGetGroups","FFE9D62A437D7AF609485BAA2E3C6222");
+        }
+
+        public T Serialize<T>(T input)
+        {
+            if (!Directory.Exists(@"c:\temp\"))
+                Directory.CreateDirectory(@"c:\temp\");
+            var fileName = @"c:\temp\" + input.GetType() + ".json";
+
+
+            var serializer = new DataContractJsonSerializer(input.GetType());
+            var ms = new MemoryStream();
+            serializer.WriteObject(ms, input);
+            var json = Encoding.UTF8.GetString(ms.ToArray());
+            File.WriteAllText(fileName, json);
+            return input;
+        }
+
+        public bool Deserialize<T>(ref T inputOutput)
+        {
+            if (!Directory.Exists(@"c:\temp\"))
+                Directory.CreateDirectory(@"c:\temp\");
+            var fileName = @"c:\temp\" + inputOutput.GetType() + ".json";
+            if (!File.Exists(fileName)) return false;
+
+
+            var serializer = new DataContractJsonSerializer(inputOutput.GetType());
+            var fileContents = File.ReadAllText(fileName);
+            try
+            {
+                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(fileContents)))
+                {
+                    inputOutput = (T)serializer.ReadObject(stream);
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+
+            return true;
+        }
+
+        //private void SetLogin()
+        //{
+        //    bool canLogin = false;
+        //    var inputs = _wbTawaf.Document.GetElementsByTagName("input");
+        //    foreach (HtmlElement input in inputs)
+        //    {
+        //        Debug.WriteLine(input.OuterHtml);
+        //        if (input.OuterHtml.Contains("gwt-TextBox"))
+        //        {
+        //            input.InnerText = _userName;
+        //            continue;
+        //        }
+        //        else if (input.OuterHtml.Contains("gwt-PasswordTextBox"))
+        //        {
+        //            input.InnerText = _password;
+        //            canLogin = true;
+        //            continue;
+        //        }
+        //    }
+
+        //    if (canLogin)
+        //    {
+        //        var btns = _wbTawaf.Document.GetElementsByTagName("button");
+        //        foreach (HtmlElement btn in btns)
+        //        {
+
+        //            if (btn.InnerHtml.Contains("Sign In"))
+        //            {
+        //                btn.InvokeMember("click");
+        //                break;
+        //            }
+
+        //        }
+        //    }
+        //}
+
+
+        string _userName;
+        string _password;
+        string eaCode;
+        string uoCode;
+        public string GetGroupCodes(string userName, string password)
+        {
+            _userName = userName;
+            GetThirtyTwoDigitCode();
+            GetGwtParameters();
+            var lastError = string.Empty;
+            _allCodesToGetGroups.Add(CodeToGetGroups);
+            foreach (var codetotry in _allCodesToGetGroups)
+            {
+                if (string.IsNullOrEmpty(codetotry)) continue;
+                var loginCode = Regex.Match(_userName, @"\d+").ToString();
+                var postDataGetGroups = "6|0|6|http://tawaf.com.sa/tawaf" + tawafYear + "/etawaf/|" + codetotry +
+                                        "|com.gwt.umra.client.async.V_Mut_Groups_Service|getTableData|" +
+                                        GroupWrapper +
+                                        "|from V_Mut_Groups where 1=1 AND grp_status=10 AND uo_branch_code=0 AND ea_code = " +
+                                        loginCode + " AND grp_arch=0|1|2|3|4|1|5|5|0|0|0|0|0|0|100|6|0|0|0|0|";
+
+                //6|0|6|http://tawaf.com.sa/tawaf" + tawafYear + "/etawaf/|FFE9D62A437D7AF609485BAA2E3C6222|com.gwt.umra.client.async.V_Mut_Groups_Service|getTableData|com.gwt.umra.shared.wrapper.V_Mut_Groups_Wrapper/2453305918|from V_Mut_Groups where 1=1 AND grp_status=10 AND uo_code = 226  AND uo_code=226 AND uo_branch_code=0 AND ea_code=21401 AND grp_arch=0|1|2|3|4|1|5|5|0|0|0|0|0|0|10|6|0|0|0|0|
+                var getGroupsInput = new List<string> { @",[0-9]{6}," };
+                var inputDictionaryGetGroups = new Dictionary<string, string>
+                {
+                    {"X-GWT-Module-Base", "http://tawaf.com.sa/tawaf" + tawafYear + "/etawaf/"},
+                    {"X-GWT-Permutation", ThirtyTwoDigitCode}
+                };
+                var getGroupResults = DownloadHtml("http://tawaf.com.sa/tawaf" + tawafYear + "/etawaf/V_Mut_Groups",
+                    postDataGetGroups, "text/x-gwt-rpc; charset=UTF-8", inputDictionaryGetGroups, getGroupsInput);
+                if (getGroupResults.ContainsKey("Error"))
+                {
+                    continue;
+                }
+
+                //if (string.IsNullOrEmpty(CodeToGetGroups)) //Coming Here means one code was good
+                //{
+                //    LastThirtyTwoDigitDate = DateTime.Now;
+                //    CodeToGetGroups = codetotry;
+                //    Serialize(this);
+                //}
+                return getGroupResults[@",[0-9]{6},"];
+            }
+
+
+            //Error area - coming here means error
+            //Coming here means error in getting group codes in this case flush the serialized object
+            //LastThirtyTwoDigitDate = DateTime.Now.AddYears(-1);
+            //CodeToGetGroups = string.Empty;
+            //Serialize(this);
+
+            return "Error:" + "Could not get available groups using any of the codes " + string.Join(",", _allCodesToGetGroups);
+
+        }
+
+        public string SendCustomer(string poststring)
+        {
+
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create("http://www.tawaf.com.sa:7777/umra_wservice/Off_MutamerSoapHttpPort");
+
+                request.UserAgent = "Mozilla/4.0 (compatible; MSIE 6.0; MS Web Services Client Protocol 2.0.50727.5420)";
+                request.ContentType = "text/xml; charset=utf-8";
+                request.Headers.Add("SOAPAction", @"""http://umra.server.com//insertOffMutamers""");
+
+                request.Method = "POST";
+                request.ServicePoint.Expect100Continue = false;
+                
+                //<MUT_ID>1</MUT_ID><MUT_GROUP>847111</MUT_GROUP><MUT_TYPE>1</MUT_TYPE><FIRST_NAME_AR /><FATHER_NAME_AR /><MIDDLE_NAME_AR /><LAST_NAME_AR /><FIRST_NAME_LA>MOHD</FIRST_NAME_LA><FATHER_NAME_LA>FARIS</FATHER_NAME_LA><MIDDLE_NAME_LA>BIN</MIDDLE_NAME_LA><LAST_NAME_LA>ZAMRI</LAST_NAME_LA><MUT_TITLE>1</MUT_TITLE><GENDER>1</GENDER><DEPEND_NO>0</DEPEND_NO><NATIONALITY>60</NATIONALITY><MARITAL_STATUS>2</MARITAL_STATUS><EDUCATION>3</EDUCATION><MUT_JOB>Employee</MUT_JOB><CURR_CITY>Malaysia</CURR_CITY><CURR_COUNTRY>60</CURR_COUNTRY><BIRTH_DATE>19890623</BIRTH_DATE><BIRTH_CITY>TERENGGANU</BIRTH_CITY><BIRTH_COUNTRY>60</BIRTH_COUNTRY><MUTAGE>27</MUTAGE><MAHRAM_ID>0</MAHRAM_ID><RELATION>0</RELATION><PASS_NO>A39292773</PASS_NO><PASS_TYPE>1</PASS_TYPE><PASS_CITY>Malaysia</PASS_CITY><PASS_COUNTRY>60</PASS_COUNTRY><PASS_ISSUE>20161106</PASS_ISSUE><PASS_EXPIRY>20220506</PASS_EXPIRY><ADDRESS_AR /><ADDRESS_LA /><AREA_AR /><AREA_LA /><PHONE_NO /><FAX_NO /><MOBILE /><UO_ID>157</UO_ID><EA_ID>21587</EA_ID><EA_BRANCH>0</EA_BRANCH><USERID>0</USERID><FAMILY>0</FAMILY><HEALTH_STATUS>0</HEALTH_STATUS><HEALTH_DESC>Normal</HEALTH_DESC><ONLINE_GROUP>5931</ONLINE_GROUP><ONLINE_MAHRAM>0</ONLINE_MAHRAM><userName>ea21587</userName><password>mkm6666</password>
+                
+                //<MUT_ID>1</MUT_ID><MUT_GROUP>847111</MUT_GROUP><MUT_TYPE>1</MUT_TYPE><FIRST_NAME_AR /><FATHER_NAME_AR /><MIDDLE_NAME_AR /><LAST_NAME_AR /><FIRST_NAME_LA>MOHD</FIRST_NAME_LA><FATHER_NAME_LA>FARIS</FATHER_NAME_LA><MIDDLE_NAME_LA>BIN</MIDDLE_NAME_LA><LAST_NAME_LA>ZAMRI</LAST_NAME_LA><MUT_TITLE>1</MUT_TITLE><GENDER>1</GENDER><DEPEND_NO>0</DEPEND_NO><NATIONALITY>60</NATIONALITY><MARITAL_STATUS>2</MARITAL_STATUS><EDUCATION>3</EDUCATION><MUT_JOB>Employee</MUT_JOB><CURR_CITY>Malaysia</CURR_CITY><CURR_COUNTRY>60</CURR_COUNTRY><BIRTH_DATE>19890623</BIRTH_DATE><BIRTH_CITY>TERENGGANU</BIRTH_CITY><BIRTH_COUNTRY>60</BIRTH_COUNTRY><MUTAGE>27</MUTAGE><MAHRAM_ID>0</MAHRAM_ID><RELATION>0</RELATION><PASS_NO>A39292773</PASS_NO><PASS_TYPE>1</PASS_TYPE><PASS_CITY>Malaysia</PASS_CITY><PASS_COUNTRY>60</PASS_COUNTRY><PASS_ISSUE>20161106</PASS_ISSUE><PASS_EXPIRY>20220506</PASS_EXPIRY><ADDRESS_AR /><ADDRESS_LA /><AREA_AR /><AREA_LA /><PHONE_NO /><FAX_NO /><MOBILE /><UO_ID>157</UO_ID><EA_ID>21587</EA_ID><EA_BRANCH>0</EA_BRANCH><USERID>0</USERID><FAMILY>0</FAMILY><HEALTH_STATUS>0</HEALTH_STATUS><HEALTH_DESC>Normal</HEALTH_DESC><ONLINE_GROUP>5931</ONLINE_GROUP><ONLINE_MAHRAM>0</ONLINE_MAHRAM><userName>ea21587</userName><password>mkm6666</password>
+                string body = @"<?xml version=""1.0"" encoding=""utf-8""?><soap:Envelope xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema""><soap:Body><insertOffMutamersElement xmlns=""http://umra.server.com/types/"">"+ poststring +"</insertOffMutamersElement></soap:Body></soap:Envelope>";
+                byte[] postBytes = System.Text.Encoding.UTF8.GetBytes(body);
+                request.ContentLength = postBytes.Length;
+                Stream stream = request.GetRequestStream();
+                stream.Write(postBytes, 0, postBytes.Length);
+                stream.Close();
+
+                var response = (HttpWebResponse)request.GetResponse();
+                return GetHtml(response);
+            }
+            catch (Exception)
+            {
+                return string.Empty;
+            }
+
+            return string.Empty;
+        }
+
+
+        public string CreateGroup(string groupName)
+        {
+
+
+            var svc = new onHttp.svcTawafGroup.GroupsClient();
+            var gp = new groupsParam();
+            gp.grp_name = groupName;
+            gp.grp_application = "Offline 38.1";
+            gp.grp_city = 0;
+            gp.grp_cntry = 60; 
+            gp.grp_ea_branch = 0;
+            gp.grp_ea_id = 21587;
+            gp.grp_emb = 219;
+            gp.grp_id = 2158701;
+            gp.grp_mutamers = 3;
+            gp.grp_package = 0;
+            gp.grp_scid = "2158701";
+            gp.grp_uo_id = 157;
+            gp.grp_userid = 1001;
+            gp.password = "mkm6666" ; 
+            gp.sip="Microsoft Windows NT 6.1.7601 Service Pack 1";
+            gp.sos="Microsoft Windows NT 6.1.7601 Service Pack 1";
+            gp.username = "ea21587";
+
+            svc.insertGroups(gp);
+      
+//            eaCode = "21587";
+//            uoCode = "157";
+//            try
+//            {
+//                HttpWebRequest request = (HttpWebRequest)WebRequest.Create("http://www.tawaf.com.sa:7777/umra_wservice/Off_GroupSoapHttpPort");
+
+//                request.UserAgent = "Mozilla/4.0 (compatible; MSIE 6.0; MS Web Services Client Protocol 2.0.50727.5420)";
+//                request.ContentType = "text/xml; charset=utf-8";
+//                request.Headers.Add("SOAPAction", @"""http://umra.server.com//insertOffGroups""");
+
+//                request.Method = "POST";
+//                request.ServicePoint.Expect100Continue = false;
+
+//                string body = @"<?xml version=""1.0"" encoding=""utf-8""?><soap:Envelope xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema""><soap:Body><insertOffGroupsElement xmlns=""http://umra.server.com/types/""><GROUP_CODE>847111</GROUP_CODE><GRP_NAME>" + groupName + "</GRP_NAME><GRP_UO_CODE>"+uoCode+"</GRP_UO_CODE><GRP_EA_CODE>"+eaCode+"</GRP_EA_CODE><GRP_EA_BRANCH>0</GRP_EA_BRANCH><GRP_EMB>219</GRP_EMB><GRP_CNTRY>60</GRP_CNTRY><GRP_PACKAGE>0</GRP_PACKAGE><GRP_APPLICATION>Offline 36.1 :: Mut:2</GRP_APPLICATION><GRP_ARRIVAL /><GRP_DEPARTURE /><userName>"+ _userName +"</userName><password>"+ _password +"</password></insertOffGroupsElement></soap:Body></soap:Envelope>";
+//                byte[] postBytes = System.Text.Encoding.UTF8.GetBytes(body);
+//                request.ContentLength = postBytes.Length;
+//                Stream stream = request.GetRequestStream();
+//                stream.Write(postBytes, 0, postBytes.Length);
+//                stream.Close();
+
+//                 var response = (HttpWebResponse)request.GetResponse();
+//                var html =  GetHtml(response);
+
+               
+////<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns0="http://umra.server.com/types/"><env:Body><ns0:insertOffGroupsResponseElement><ns0:result>GRP:5931</ns0:result></ns0:insertOffGroupsResponseElement></env:Body></env:Envelope>
+//                var groupID = GetValue(html, @"<ns0:result>GRP:(\d+)</ns0:result>");
+
+//                return groupID;
+
+//            }
+//            catch (Exception)
+//            {
+//                return string.Empty;
+//            }
+
+            return string.Empty;
+        }
+
+        private string GetHtml(HttpWebResponse response)
+        {
+            var resultStream = response.GetResponseStream();
+            if (resultStream != null)
+            {
+                var resultReader = new StreamReader(resultStream);
+                return resultReader.ReadToEnd();
+            }
+
+            return string.Empty;
+        }
+
+        public string GetCsvFile(string groupCodes)
+        {
+            var getCsVpostData = "6|0|24|http://tawaf.com.sa/tawaf" + tawafYear + "/etawaf/|" + BoxVer +
+                                 "|com.gwt.umra.client.async.Rep_Mofa_Service|getListData|" + RepMofaWrapper +
+                                 "|" + JavaUtilCode + "|" + JavaLangCode +
+                                 "|Group Code|,|Group Name|Mutamer Code|Mutamer Name|Mofa No|Gender|Date of Birth|Nationality|Passport No|Dependant|Mahram|Serial No|Relation|MOI No|" +
+                                 "|from  Rep_Mofa where group_no in(" + groupCodes +
+                                 ") order by nvl(nvl(m_parent_code,m_mahram_code),mut_code),m_gender,m_dpn_serial_no |1|2|3|4|1|5|5|0|6|28|7|8|7|9|7|10|-4|7|11|-4|7|12|-4|7|13|-4|7|14|-4|7|15|-4|7|16|-4|7|17|-4|7|18|-4|7|19|-4|7|20|-4|7|21|-4|7|22|7|23|0|0|50|24|0|0|";
+
+            var csvInput = new List<string>();
+            var csvDictionary = new Dictionary<string, string>
+            {
+                {"X-GWT-Module-Base", "http://tawaf.com.sa/tawaf" + tawafYear + "/etawaf/"},
+                {"X-GWT-Permutation", ThirtyTwoDigitCode}
+            };
+            DownloadHtml("http://tawaf.com.sa/tawaf" + tawafYear + "/etawaf/Rep_Mofa", getCsVpostData,
+                "text/x-gwt-rpc; charset=UTF-8", csvDictionary, csvInput);
+
+
+            var csv = DownloadHtml("http://tawaf.com.sa/tawaf" + tawafYear + "/etawaf/Excel_RepGrpStat_GotMofa_Servlet",
+                csvInput);
+
+            return csv["html"];
+        }
+
+
+        public TawafResponse(string userName, string pass)
+        {
+            _userName = userName;
+            _password = pass;
+        }
+
+
+        public string Login()
+        {
+            var svc = new onHttp.svcTawafLogin.Offline_LoginClient();
+             var result = svc.getOfflineLogin(_userName, _password);
+            return result.ToString();
+        }
+        public Dictionary<string,string> GetEAUO(string userName, string pass)
+        {
+            _userName = userName;
+            _password = pass;
+            var output  = new Dictionary<string,string>();
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create("http://www.tawaf.com.sa:7777/umra_wservice/Offline_LoginSoapHttpPort");
+
+                request.UserAgent = "Mozilla/4.0 (compatible; MSIE 6.0; MS Web Services Client Protocol 2.0.50727.5420)";
+                request.ContentType = "text/xml; charset=utf-8";
+                request.Headers.Add("SOAPAction", @"""http://umra.server.com//getLogin""");
+
+                request.Method = "POST";
+                request.ServicePoint.Expect100Continue = false;
+
+                string body = @"<?xml version=""1.0"" encoding=""utf-8""?><soap:Envelope xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema""><soap:Body><getLoginElement xmlns=""http://umra.server.com/types/""><userName>" + userName + "</userName><password>"+ pass +"</password></getLoginElement></soap:Body></soap:Envelope>";
+                byte[] postBytes = System.Text.Encoding.UTF8.GetBytes(body);
+                request.ContentLength = postBytes.Length;
+                Stream stream = request.GetRequestStream();
+                stream.Write(postBytes, 0, postBytes.Length);
+                stream.Close();
+
+                var response = (HttpWebResponse)request.GetResponse();
+                var html=  GetHtml(response);
+                var eaIdMatch = GetValue(html,@"<EA_ID>(\.*?)</EA_ID>");
+                var uoMatch = GetValue(html,@"<UO_ID>(\.*?)</UO__ID>");
+                output.Add("EA",eaIdMatch);
+                output.Add("UO",uoMatch);
+                
+            }
+            catch (Exception)
+            {
+                return output;
+            }
+
+            return output;
+        
+        }
+
+private string GetValue(string input, string pattern)
+{
+    var m = Regex.Match(input, pattern);
+    if (m.Success)
+    {
+return m.Groups[1].ToString();
+    }
+    else
+    {
+        return string.Empty;
+    }
+}
+    }
+}

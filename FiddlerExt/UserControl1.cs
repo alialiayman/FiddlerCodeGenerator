@@ -16,20 +16,29 @@ namespace onSoft
 
         private void UserControl1_DragDrop(object sender, DragEventArgs e)
         {
+            var cg = new CodeGen();
             _sessionsData = ((Session[]) e.Data.GetData("Fiddler.Session[]"));
             var rootDir = Path.Combine(Application.StartupPath,"RestSharp");
             if (!Directory.Exists(rootDir)) Directory.CreateDirectory(rootDir);
             treeFiles.Nodes[0].Text = rootDir;
-            foreach (var oneSession in _sessionsData)
-            {
-                dfsUrl.Text = oneSession.fullUrl;
-                dfsInputClass.Text = "InputClass";
-                dfsOutputClass.Text = "OutputClass";
-                var code = GenerateCode(oneSession);
-                File.WriteAllText($"{oneSession.id}.cs", code);
-                treeFiles.Nodes[0].Nodes.Add($"{oneSession.id}.cs");
 
-            }
+            var codeMethods = cg.GenerateCode(_sessionsData);
+
+            string.Join("\n", codeMethods);
+            var thisFileName = $"{DateTime.Now.Ticks}.cs";
+            File.WriteAllText(thisFileName, string.Join("\n", codeMethods));
+            treeFiles.Nodes[0].Nodes.Add(thisFileName);
+
+            //foreach (var oneSession in _sessionsData)
+            //{
+            //    dfsUrl.Text = oneSession.fullUrl;
+            //    dfsInputClass.Text = "InputClass";
+            //    dfsOutputClass.Text = "OutputClass";
+            //    var code = GenerateCode(oneSession);
+            //    File.WriteAllText($"{oneSession.id}.cs", code);
+            //    treeFiles.Nodes[0].Nodes.Add($"{oneSession.id}.cs");
+
+            //}
             treeFiles.Nodes[0].ExpandAll();
 
         }
@@ -46,7 +55,7 @@ namespace onSoft
                 cg.OutputClass = dfsOutputClass.Text;
                 cg.Url = dfsUrl.Text;
                 return 
-                    cg.MakeRestSharpCode(
+                    cg.GenerateCode(
                         inputsession); 
             }
 

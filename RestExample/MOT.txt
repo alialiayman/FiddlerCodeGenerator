@@ -1,0 +1,266 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+using onService;
+
+namespace onHttp
+{
+    public class MOT
+    {
+
+        Dictionary<string,string> _views = new Dictionary<string, string>();
+        private readonly CookieContainer _cookieContainer = new CookieContainer();
+        public void Login(string userName, string password)
+        {
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create("http://mot.hajj.gov.eg/umra/forms/index.aspx");
+
+            request.Accept = "*/*";
+            request.Headers.Set(HttpRequestHeader.AcceptLanguage, "en-CA");
+            request.UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko";
+          
+            SetCommonRequestDetails(request);
+            var response = (HttpWebResponse)request.GetResponse();
+            var respnseHtml = onService.Utility.GetResponseHtml(response);
+            _views = onService.Utility.GetViews(respnseHtml);
+
+
+             request = (HttpWebRequest)WebRequest.Create("http://mot.hajj.gov.eg/umra/forms/index.aspx");
+
+            request.Accept = "application/x-ms-application, image/jpeg, application/xaml+xml, image/gif, image/pjpeg, application/x-ms-xbap, application/x-shockwave-flash, application/vnd.ms-excel, application/msword, */*";
+            request.Referer = "http://mot.hajj.gov.eg/umra/forms/index.aspx";
+            request.Headers.Set(HttpRequestHeader.AcceptLanguage, "en-CA");
+            request.UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko";
+            request.ContentType = "application/x-www-form-urlencoded";
+            
+            request.Headers.Set(HttpRequestHeader.Pragma, "no-cache");
+
+            request.Method = "POST";
+            request.ServicePoint.Expect100Continue = false;
+            SetCommonRequestDetails(request);
+
+            var inputDictionary = new Dictionary<string, string>
+            {
+                {
+                    "__VIEWSTATE",
+                    _views[Constants.ViewState]
+                },
+                {
+                    "__EVENTVALIDATION",
+                    _views[Constants.EventValidation]
+                },
+                {"txtUserName", userName},
+                {"txtPassWord", Uri.EscapeDataString( password)},
+                {"btnValidate.x", "0"},
+                {"btnValidate.y", "0"},
+            };
+
+
+            string body = String.Empty;
+            foreach (var pair in inputDictionary)
+                body = body + "&" + pair.Key + "=" + pair.Value;
+            body = body.Trim('&');
+            byte[] postBytes = System.Text.Encoding.UTF8.GetBytes(body);
+            request.ContentLength = postBytes.Length;
+            Stream stream = request.GetRequestStream();
+            stream.Write(postBytes, 0, postBytes.Length);
+            stream.Close();
+
+            response = (HttpWebResponse)request.GetResponse();
+             respnseHtml = onService.Utility.GetResponseHtml(response);
+            _views = onService.Utility.GetViews(respnseHtml);
+        }
+
+    
+        public void SelectProgram(string date, string programName)
+        {
+            var request = (HttpWebRequest)WebRequest.Create("http://mot.hajj.gov.eg/umra/forms/Comp_Main.aspx");
+
+            request.KeepAlive = true;
+            request.Headers.Add("Upgrade-Insecure-Requests", @"1");
+            request.UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36";
+            request.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";
+            request.Headers.Add("DNT", @"1");
+            request.Referer = "http://mot.hajj.gov.eg/umra/forms/index.aspx";
+            request.Headers.Set(HttpRequestHeader.AcceptLanguage, "en-US,en;q=0.8,ar;q=0.6");
+            request.Headers.Set(HttpRequestHeader.Cookie, @"ASP.NET_SessionId=hw53kplijsjbkvlfvjy30nak; .ASPXAUTH=C5156459CEE5BABE30D6630B4DF18CBC5BF03F42B812C0BA94BF14ACB6CF824A7479F9E0C924049ABE7E918530166938153F767B3B51759BDA25F4B44F79E0D25E67A5F437DED1E3CD30D2EBAFDBC082");
+
+            SetCommonRequestDetails(request);
+            var response = (HttpWebResponse)request.GetResponse();
+            var respnseHtml = onService.Utility.GetResponseHtml(response);
+            _views = onService.Utility.GetViews(respnseHtml);
+
+
+             request = (HttpWebRequest)WebRequest.Create("http://mot.hajj.gov.eg/umra/forms/Comp_Main.aspx");
+
+            request.KeepAlive = true;
+            request.Headers.Set(HttpRequestHeader.CacheControl, "max-age=0");
+            request.Headers.Add("Origin", @"http://mot.hajj.gov.eg");
+            request.Headers.Add("Upgrade-Insecure-Requests", @"1");
+            request.UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36";
+            request.ContentType = "application/x-www-form-urlencoded";
+            request.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";
+            request.Headers.Add("DNT", @"1");
+            request.Referer = "http://mot.hajj.gov.eg/umra/forms/Comp_Main.aspx";
+ 
+            request.Headers.Set(HttpRequestHeader.AcceptLanguage, "en-US,en;q=0.8,ar;q=0.6");
+            request.Headers.Set(HttpRequestHeader.Cookie, @"ASP.NET_SessionId=hw53kplijsjbkvlfvjy30nak; .ASPXAUTH=C5156459CEE5BABE30D6630B4DF18CBC5BF03F42B812C0BA94BF14ACB6CF824A7479F9E0C924049ABE7E918530166938153F767B3B51759BDA25F4B44F79E0D25E67A5F437DED1E3CD30D2EBAFDBC082");
+
+            request.Method = "POST";
+            request.ServicePoint.Expect100Continue = false;
+            SetCommonRequestDetails(request);
+
+            var inputDictionary = new Dictionary<string, string> {
+{"__EVENTTARGET","ctl00%24ContentPlaceHolder1%24ASPxMenu1"},
+{"__EVENTARGUMENT","CLICK%3A2"},
+{"__VIEWSTATE",_views[Constants.ViewState]},
+{"__EVENTVALIDATION",_views[Constants.EventValidation]},
+{"ctl00%24ContentPlaceHolder1%24ASPxMenu1","%7B%26quot%3BselectedItemIndexPath%26quot%3B%3A%26quot%3B%26quot%3B%2C%26quot%3BcheckedState%26quot%3B%3A%26quot%3B%26quot%3B%7D"},
+{"DXScript","1_230%2C1_134%2C1_223%2C1_168%2C1_131%2C1_215%2C1_221%2C1_205"},
+{"DXCss","1_29%2C1_33%2C1_3%2Ccss%2Fdropdown%2Fdropdown.css%2Ccss%2Fdropdown%2Fthemes%2Fnvidia.com%2Fdefault.advanced.css"},
+};
+            string body = String.Empty;
+            body = inputDictionary.Aggregate(String.Empty, (current, item) => current + " & " + item.Key + " = " + item.Value);
+
+
+
+            byte[] postBytes = System.Text.Encoding.UTF8.GetBytes(body);
+            request.ContentLength = postBytes.Length;
+            Stream stream = request.GetRequestStream();
+            stream.Write(postBytes, 0, postBytes.Length);
+            stream.Close();
+
+            response = (HttpWebResponse)request.GetResponse();
+
+             respnseHtml = onService.Utility.GetResponseHtml(response);
+            _views = onService.Utility.GetViews(respnseHtml);
+
+
+        }
+
+        private void SetCommonRequestDetails(HttpWebRequest req)
+        {
+            //req.UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36";
+            req.CookieContainer = _cookieContainer;
+        }
+
+        public void AddPassport()
+        {
+
+
+
+            var request = (HttpWebRequest)WebRequest.Create("http://mot.hajj.gov.eg/umra/forms/AddPass.aspx");
+
+            request.KeepAlive = true;
+            request.Headers.Set(HttpRequestHeader.CacheControl, "max-age=0");
+            request.Headers.Add("Origin", @"http://mot.hajj.gov.eg");
+            request.Headers.Add("Upgrade-Insecure-Requests", @"1");
+            request.UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36";
+            request.ContentType = "application/x-www-form-urlencoded";
+            request.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";
+            request.Headers.Add("DNT", @"1");
+            request.Referer = "http://mot.hajj.gov.eg/umra/forms/AddPass.aspx";
+           
+            request.Headers.Set(HttpRequestHeader.AcceptLanguage, "en-US,en;q=0.8,ar;q=0.6");
+            request.CookieContainer = _cookieContainer;
+            request.Method = "POST";
+            request.ServicePoint.Expect100Continue = false;
+            SetCommonRequestDetails(request);
+            var inputDictionary = new Dictionary<string, string>
+            {
+                {
+                    "ctl00%24ContentPlaceHolder1%24ASPxMenu1",
+                    "%7B%26quot%3BselectedItemIndexPath%26quot%3B%3A%26quot%3B%26quot%3B%2C%26quot%3BcheckedState%26quot%3B%3A%26quot%3B%26quot%3B%7D"
+                },
+                {"ctl00%24ContentPlaceHolder1%24ddlfiles", "14387123720404"},
+                {
+                    "ctl00%24ContentPlaceHolder2%24ddlprograms",
+                    "%D9%85%D8%AD%D9%85%D9%88%D8%AF+%D9%85%D9%86%D8%A7%D8%B4%D9%8A"
+                },
+                {"ctl00%24ContentPlaceHolder2%24p_n", "A1111152"},
+                {"ctl00%24ContentPlaceHolder2%24ddgov", "1"},
+                {"ctl00%24ContentPlaceHolder2%24Exp_Date", "2017-10-13"},
+                {"ctl00%24ContentPlaceHolder2%24Exp_Date%24dateInput", "13%2F10%2F2017"},
+                {
+                    "ctl00_ContentPlaceHolder2_Exp_Date_dateInput_ClientState",
+                    "%7B%22enabled%22%3Atrue%2C%22emptyMessage%22%3A%22%22%2C%22validationText%22%3A%222017-10-13-00-00-00%22%2C%22valueAsString%22%3A%222017-10-13-00-00-00%22%2C%22minDateStr%22%3A%222017-10-04-00-00-00%22%2C%22maxDateStr%22%3A%222099-12-31-00-00-00%22%2C%22lastSetTextBoxValue%22%3A%2213%2F10%2F2017%22%7D"
+                },
+                {"ctl00_ContentPlaceHolder2_Exp_Date_calendar_SD", "%5B%5B2017%2C10%2C13%5D%5D"},
+                {
+                    "ctl00_ContentPlaceHolder2_Exp_Date_calendar_AD",
+                    "%5B%5B2017%2C10%2C4%5D%2C%5B2099%2C12%2C30%5D%2C%5B2017%2C10%2C4%5D%5D"
+                },
+                {
+                    "ctl00_ContentPlaceHolder2_Exp_Date_ClientState",
+                    "%7B%22minDateStr%22%3A%222017-10-04-00-00-00%22%2C%22maxDateStr%22%3A%222099-12-31-00-00-00%22%7D"
+                },
+                {"ctl00%24ContentPlaceHolder2%24N_a_1", "%D8%B4%D8%B4%D8%B4"},
+                {"ctl00%24ContentPlaceHolder2%24N_a_1_TextBoxWatermarkExtender_ClientState", ""},
+                {"ctl00%24ContentPlaceHolder2%24N_a_2", "%D8%B4%D8%B4%D8%B4"},
+                {"ctl00%24ContentPlaceHolder2%24N_a_2_TextBoxWatermarkExtender_ClientState", ""},
+                {"ctl00%24ContentPlaceHolder2%24N_a_3", "%D8%B4%D8%B4%D8%B4%D8%B4"},
+                {"ctl00%24ContentPlaceHolder2%24N_a_3_TextBoxWatermarkExtender_ClientState", ""},
+                {"ctl00%24ContentPlaceHolder2%24N_a_4", "%D8%B4%D8%B4%D8%B4"},
+                {"ctl00%24ContentPlaceHolder2%24N_a_4_TextBoxWatermarkExtender_ClientState", ""},
+                {"ctl00%24ContentPlaceHolder2%24N_e_1", "adas"},
+                {"ctl00%24ContentPlaceHolder2%24N_e_1_TextBoxWatermarkExtender_ClientState", ""},
+                {"ctl00%24ContentPlaceHolder2%24N_e_2", "da"},
+                {"ctl00%24ContentPlaceHolder2%24N_e_2_TextBoxWatermarkExtender_ClientState", ""},
+                {"ctl00%24ContentPlaceHolder2%24N_e_3", "da"},
+                {"ctl00%24ContentPlaceHolder2%24N_e_3_TextBoxWatermarkExtender_ClientState", ""},
+                {"ctl00%24ContentPlaceHolder2%24N_e_4", "da"},
+                {"ctl00%24ContentPlaceHolder2%24N_e_4_TextBoxWatermarkExtender_ClientState", ""},
+                {"ctl00%24ContentPlaceHolder2%24ar_address", "dada"},
+                {"ctl00%24ContentPlaceHolder2%24ddcity", "%D8%A7%D9%84%D8%A5%D8%B3%D9%83%D9%86%D8%AF%D8%B1%D9%8A%D8%A9"},
+                {"ctl00%24ContentPlaceHolder2%24txtJob", "dada"},
+                {"ctl00%24ContentPlaceHolder2%24ddlss", "%D9%85%D8%AA%D8%B2%D9%88%D8%AC"},
+                {"ctl00%24ContentPlaceHolder2%24s_s_n", "24909250201459"},
+                {"ctl00%24ContentPlaceHolder2%24B_Date", "1949-09-25"},
+                {
+                    "ctl00_ContentPlaceHolder2_B_Date_dateInput_ClientState",
+                    "%7B%22enabled%22%3Afalse%2C%22emptyMessage%22%3A%22%22%2C%22validationText%22%3A%221949-09-25-00-00-00%22%2C%22valueAsString%22%3A%221949-09-25-00-00-00%22%2C%22minDateStr%22%3A%221910-01-25-00-00-00%22%2C%22maxDateStr%22%3A%222020-01-15-00-00-00%22%2C%22lastSetTextBoxValue%22%3A%2225%2F09%2F1949%22%7D"
+                },
+                {"ctl00_ContentPlaceHolder2_B_Date_calendar_SD", "%5B%5D"},
+                {
+                    "ctl00_ContentPlaceHolder2_B_Date_calendar_AD",
+                    "%5B%5B1910%2C1%2C25%5D%2C%5B2020%2C1%2C15%5D%2C%5B2017%2C3%2C19%5D%5D"
+                },
+                {
+                    "ctl00_ContentPlaceHolder2_B_Date_ClientState",
+                    "%7B%22minDateStr%22%3A%221910-01-25-00-00-00%22%2C%22maxDateStr%22%3A%222020-01-15-00-00-00%22%7D"
+                },
+                {
+                    "ctl00%24ContentPlaceHolder2%24btnSaveprog",
+                    "%D8%AD%D9%81%D8%B8++%D9%88%D8%A5%D8%AF%D8%B1%D8%A7%D8%AC+%D8%A7%D9%84%D8%AC%D9%88%D8%A7%D8%B2+%D9%84%D9%84%D8%A8%D8%B1%D9%86%D8%A7%D9%85%D8%AC+%D8%A7%D9%84%D9%85%D8%AE%D8%AA%D8%A7%D8%B1"
+                },
+                {"DXScript", "1_230%2C1_134%2C1_223%2C1_168%2C1_131%2C1_215%2C1_221%2C1_205"},
+                {
+                    "DXCss",
+                    "%2FWebResource.axd%3Fd%3DkdkY-fM3-a8yUYfXhOToAoLl7g3OHOit8o31YSGy5trW94hFEc-uhIH1ndPKxKQf0%26t%3D635827770660000000%2C%2FWebResource.axd%3Fd%3D7w11KmMlO6T9uBH7mvsgwm7I7qJL-E6kQ4GF-cEdPHj4yFYyUVAXXzXkuJQF3ELllZIweUD9Pb2_5j6HG-pVC5pFKRKf_tj1gjWNBc7Hkz01%26t%3D635827770660000000%2C%2FWebResource.axd%3Fd%3DkdkY-fM3-a8yUYfXhOToAoLl7g3OHOit8o31YSGy5todbjgBClX1RKMlBD15Hy6bOMcsS9YP3QZFplOUXEFaLQ2%26t%3D635827770660000000%2C%2FWebResource.axd%3Fd%3D7w11KmMlO6T9uBH7mvsgwm7I7qJL-E6kQ4GF-cEdPHj4yFYyUVAXXzXkuJQF3ELlHZFOM4kXVc9ShxDkJOGmj4Zfn6RmrwNIyKE9Kpijp241%26t%3D635827770660000000%2C1_29%2C1_33%2C1_3%2Ccss%2Fdropdown%2Fdropdown.css%2Ccss%2Fdropdown%2Fthemes%2Fnvidia.com%2Fdefault.advanced.css"
+                },
+                {"__LASTFOCUS", ""},
+                {"__EVENTTARGET", ""},
+                {"__EVENTARGUMENT", ""},
+                {"__VIEWSTATE", _views[Constants.ViewState]},
+                {"__EVENTVALIDATION", _views[Constants.EventValidation]},
+            };
+            string body = inputDictionary.Aggregate(String.Empty, (current, item) => current + "&" + item.Key + "=" + item.Value); 
+            byte[] postBytes = System.Text.Encoding.UTF8.GetBytes(body);
+            request.ContentLength = postBytes.Length;
+            Stream stream = request.GetRequestStream();
+            stream.Write(postBytes, 0, postBytes.Length);
+            stream.Close();
+
+            var response = (HttpWebResponse)request.GetResponse();
+             var respnseHtml = onService.Utility.GetResponseHtml(response);
+            _views = onService.Utility.GetViews(respnseHtml);
+
+
+        }
+
+
+    }
+}
