@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Fiddler;
@@ -32,6 +33,7 @@ namespace onSoft
                 output.Add(GenerateCode(oSession));
             }
 
+            output.Add(GenerateFooter(oSessions));
             return output;
 
         }
@@ -40,6 +42,8 @@ namespace onSoft
         {
             var sr = new StringBuilder();
             sr.AppendLine("private readonly CookieContainer CookieJar = new CookieContainer();");
+            sr.AppendLine("Dictionary<string,string> DomControls = new Dictionary<string,string>();");
+            
             sr.AppendLine("public void RunAll() {");
             foreach (var oSession in oSessions)
             {
@@ -48,6 +52,73 @@ namespace onSoft
 
 
             sr.AppendLine("}");
+
+            return sr.ToString();
+        }
+
+
+        private string GenerateFooter(Session[] oSessions)
+        {
+            var sr = new StringBuilder();
+  
+            sr.AppendLine("private Dictionary<string, string> GetDomControlElements(string html, List<string> inputElements)");
+            sr.AppendLine("{");
+            sr.AppendLine("var output = new Dictionary<string, string>();");
+            sr.AppendLine("var doc = new HtmlAgilityPack.HtmlDocument();");
+            sr.AppendLine("doc.LoadHtml(html);");
+
+            sr.AppendLine("GetDomControlElement(doc, output, \"__VIEWSTATE\");");
+            sr.AppendLine("GetDomControlElement(doc, output, \"__VIEWSTATEGENERATOR\");");
+            sr.AppendLine("GetDomControlElement(doc, output, \"__EVENTVALIDATION\");");
+            sr.AppendLine("foreach (var inputElement in inputElements)");
+            sr.AppendLine("{");
+            sr.AppendLine("GetDomControlElement(doc, output, inputElement);");
+            sr.AppendLine("}");
+            sr.AppendLine("return output;");
+            sr.AppendLine("}");
+
+            sr.AppendLine("private void GetDomControlElement(HtmlAgilityPack.HtmlDocument doc, Dictionary<string, string> controlsDictionary, string controlItem)");
+            sr.AppendLine("{");
+            sr.AppendLine("var vsNode = doc.GetElementbyId(\"__VIEWSTATE\");");
+            sr.AppendLine("if (vsNode != null && vsNode.HasAttributes && vsNode.Attributes[\"value\"] != null)");
+            sr.AppendLine("{");
+            sr.AppendLine("if (controlsDictionary.Keys.Contains(controlItem))");
+            sr.AppendLine("controlsDictionary[controlItem] = EscapeUriString(vsNode.Attributes[\"value\"].Value);");
+            sr.AppendLine("else");
+            sr.AppendLine("controlsDictionary.Add(controlItem, EscapeUriString(vsNode.Attributes[\"value\"].Value));");
+            sr.AppendLine("}");
+            sr.AppendLine("else //Try to parse the html for ");
+            sr.AppendLine("{");
+            sr.AppendLine("var regViewState = Regex.Match(doc.ToString(), @\"__VIEWSTATE\" + Regex.Escape(\"|\") + \"(.+?)\" + Regex.Escape(\"| \"));");
+            sr.AppendLine("if (regViewState.Success)");
+            sr.AppendLine("{");
+            sr.AppendLine("if (controlsDictionary.Keys.Contains(controlItem))");
+            sr.AppendLine("controlsDictionary[controlItem] = EscapeUriString(regViewState.Groups[1].ToString());");
+            sr.AppendLine("else");
+            sr.AppendLine("controlsDictionary.Add(controlItem, EscapeUriString(regViewState.Groups[1].ToString()));");
+            sr.AppendLine("}");
+            sr.AppendLine("}");
+            sr.AppendLine("}");
+
+
+
+            sr.AppendLine("private string EscapeUriString(string input)");
+            sr.AppendLine("{");
+            sr.AppendLine("var limit = 2000;");
+
+            sr.AppendLine("var sb = new StringBuilder();");
+            sr.AppendLine("var loops = input.Length / limit;");
+
+            sr.AppendLine("for (var i = 0; i <= loops; i++)");
+            sr.AppendLine("{");
+            sr.AppendLine("sb.Append(i < loops");
+            sr.AppendLine("? Uri.EscapeDataString(input.Substring(limit * i, limit))");
+            sr.AppendLine(": Uri.EscapeDataString(input.Substring(limit * i)));");
+            sr.AppendLine("}");
+
+            sr.AppendLine("return sb.ToString(); ");
+            sr.AppendLine("}");
+
 
             return sr.ToString();
         }
@@ -102,6 +173,7 @@ namespace onSoft
 
             AppendLine(code, 4, "var response = client.Execute<" + OutputClass + ">(request);");
             AppendLine(code, 4, "loginResponse = response.Data;");
+            AppendLine(code, 4, "DomControls = GetDomControlElements(response.Content, new List<string>());");
             AppendLine(code, 4, "return response;");
             AppendLine(code, 3, "}");
 
@@ -146,7 +218,13 @@ namespace onSoft
             var bodySplit = oSession.GetRequestBodyAsString().Split('&');
             foreach (var s in bodySplit)
             {
-                code.AppendLine($"\tsrBody.Append(\"{s}\");");
+                var keyValue = s.Split('=');
+                var paramKey = keyValue[0];
+                var paramValue = string.Empty;
+                if (keyValue.Count() > 1)
+                    paramValue = keyValue[1];
+
+                code.AppendLine($"\tsrBody.Append(\"{paramKey}=\" + \"{paramValue}\" + \"&\");");
             }
             code.AppendLine($"\tvar body = srBody.ToString();");
             code.AppendLine($"\trequest.AddParameter(\"text/xml\", body, ParameterType.RequestBody);");
@@ -154,6 +232,7 @@ namespace onSoft
             code.AppendLine("\trequest.AddJsonBody(requestObject);");
             code.AppendLine("\tvar response = client.Execute<" + OutputClass + ">(request);");
             code.AppendLine("\tsaveResponse = response.Data;");
+            AppendLine(code, 4, "DomControls = GetDomControlElements(response.Content, new List<string>());");
             code.AppendLine("\treturn response;");
             code.AppendLine("\t}");
 
