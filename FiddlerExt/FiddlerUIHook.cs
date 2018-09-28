@@ -18,7 +18,7 @@ namespace onSoft
 
         public void OnBeforeUnload()
         {
-           
+            Properties.Settings.Default.Save();
         }
     }
 }

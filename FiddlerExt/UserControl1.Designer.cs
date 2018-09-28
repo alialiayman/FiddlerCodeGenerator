@@ -33,15 +33,14 @@
             this.btnCopyCode = new System.Windows.Forms.Button();
             this.txtcode = new System.Windows.Forms.RichTextBox();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.label3 = new System.Windows.Forms.Label();
-            this.dfsUrl = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.dfsOutputClass = new System.Windows.Forms.TextBox();
+            this.lblPostTemplate = new System.Windows.Forms.Label();
+            this.lblGetTemplate = new System.Windows.Forms.Label();
+            this.lblBaseTemplate = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
-            this.dfsInputClass = new System.Windows.Forms.TextBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.treeFiles = new System.Windows.Forms.TreeView();
+            this.dfsNewPath = new System.Windows.Forms.TextBox();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -52,11 +51,11 @@
             // btnCopyCode
             // 
             this.btnCopyCode.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnCopyCode.Location = new System.Drawing.Point(992, 33);
+            this.btnCopyCode.Location = new System.Drawing.Point(992, 42);
             this.btnCopyCode.Name = "btnCopyCode";
             this.btnCopyCode.Size = new System.Drawing.Size(65, 23);
             this.btnCopyCode.TabIndex = 2;
-            this.btnCopyCode.Text = "Copy";
+            this.btnCopyCode.Text = "Copy Files";
             this.btnCopyCode.UseVisualStyleBackColor = true;
             this.btnCopyCode.Click += new System.EventHandler(this.btnCopyCode_Click);
             // 
@@ -66,91 +65,67 @@
             this.txtcode.Dock = System.Windows.Forms.DockStyle.Fill;
             this.txtcode.Location = new System.Drawing.Point(0, 0);
             this.txtcode.Name = "txtcode";
-            this.txtcode.Size = new System.Drawing.Size(768, 434);
+            this.txtcode.Size = new System.Drawing.Size(768, 452);
             this.txtcode.TabIndex = 3;
             this.txtcode.Text = "";
             // 
             // panel1
             // 
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.panel1.Controls.Add(this.label3);
-            this.panel1.Controls.Add(this.dfsUrl);
-            this.panel1.Controls.Add(this.label2);
-            this.panel1.Controls.Add(this.dfsOutputClass);
+            this.panel1.Controls.Add(this.dfsNewPath);
+            this.panel1.Controls.Add(this.lblPostTemplate);
+            this.panel1.Controls.Add(this.lblGetTemplate);
+            this.panel1.Controls.Add(this.lblBaseTemplate);
             this.panel1.Controls.Add(this.label1);
-            this.panel1.Controls.Add(this.dfsInputClass);
             this.panel1.Controls.Add(this.btnCopyCode);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1082, 90);
+            this.panel1.Size = new System.Drawing.Size(1082, 72);
             this.panel1.TabIndex = 4;
             // 
-            // label3
+            // lblPostTemplate
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(14, 17);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(20, 13);
-            this.label3.TabIndex = 8;
-            this.label3.Text = "Url";
+            this.lblPostTemplate.AutoSize = true;
+            this.lblPostTemplate.Location = new System.Drawing.Point(223, 52);
+            this.lblPostTemplate.Name = "lblPostTemplate";
+            this.lblPostTemplate.Size = new System.Drawing.Size(75, 13);
+            this.lblPostTemplate.TabIndex = 6;
+            this.lblPostTemplate.Text = "Post Template";
             // 
-            // dfsUrl
+            // lblGetTemplate
             // 
-            this.dfsUrl.Location = new System.Drawing.Point(46, 14);
-            this.dfsUrl.Multiline = true;
-            this.dfsUrl.Name = "dfsUrl";
-            this.dfsUrl.Size = new System.Drawing.Size(496, 59);
-            this.dfsUrl.TabIndex = 7;
-            this.toolTip1.SetToolTip(this.dfsUrl, "use {} to add url segments and notice the code change");
-            this.dfsUrl.Leave += new System.EventHandler(this.dfsUrl_Leave);
+            this.lblGetTemplate.AutoSize = true;
+            this.lblGetTemplate.Location = new System.Drawing.Point(223, 27);
+            this.lblGetTemplate.Name = "lblGetTemplate";
+            this.lblGetTemplate.Size = new System.Drawing.Size(71, 13);
+            this.lblGetTemplate.TabIndex = 5;
+            this.lblGetTemplate.Text = "Get Template";
             // 
-            // label2
+            // lblBaseTemplate
             // 
-            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(719, 56);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(67, 13);
-            this.label2.TabIndex = 6;
-            this.label2.Text = "Output Class";
-            // 
-            // dfsOutputClass
-            // 
-            this.dfsOutputClass.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.dfsOutputClass.Location = new System.Drawing.Point(792, 53);
-            this.dfsOutputClass.Name = "dfsOutputClass";
-            this.dfsOutputClass.Size = new System.Drawing.Size(194, 20);
-            this.dfsOutputClass.TabIndex = 5;
-            this.toolTip1.SetToolTip(this.dfsOutputClass, "Change output class");
-            this.dfsOutputClass.Leave += new System.EventHandler(this.dfsOutputClass_Leave);
+            this.lblBaseTemplate.AutoSize = true;
+            this.lblBaseTemplate.Location = new System.Drawing.Point(223, 2);
+            this.lblBaseTemplate.Name = "lblBaseTemplate";
+            this.lblBaseTemplate.Size = new System.Drawing.Size(78, 13);
+            this.lblBaseTemplate.TabIndex = 4;
+            this.lblBaseTemplate.Text = "Base Template";
             // 
             // label1
             // 
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(727, 17);
+            this.label1.Location = new System.Drawing.Point(42, 17);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(59, 13);
-            this.label1.TabIndex = 4;
-            this.label1.Text = "Input Class";
-            // 
-            // dfsInputClass
-            // 
-            this.dfsInputClass.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.dfsInputClass.Location = new System.Drawing.Point(792, 14);
-            this.dfsInputClass.Name = "dfsInputClass";
-            this.dfsInputClass.Size = new System.Drawing.Size(194, 20);
-            this.dfsInputClass.TabIndex = 3;
-            this.toolTip1.SetToolTip(this.dfsInputClass, "Change input class");
-            this.dfsInputClass.Leave += new System.EventHandler(this.dfsInputClass_Leave);
+            this.label1.Size = new System.Drawing.Size(147, 13);
+            this.label1.TabIndex = 3;
+            this.label1.Text = "drag and drop session here ...";
             // 
             // splitContainer1
             // 
             this.splitContainer1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.splitContainer1.Location = new System.Drawing.Point(3, 96);
+            this.splitContainer1.Location = new System.Drawing.Point(3, 78);
             this.splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
@@ -160,7 +135,7 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.txtcode);
-            this.splitContainer1.Size = new System.Drawing.Size(1079, 434);
+            this.splitContainer1.Size = new System.Drawing.Size(1079, 452);
             this.splitContainer1.SplitterDistance = 307;
             this.splitContainer1.TabIndex = 5;
             // 
@@ -174,9 +149,18 @@
             treeNode1.Text = "Files";
             this.treeFiles.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
             treeNode1});
-            this.treeFiles.Size = new System.Drawing.Size(307, 434);
+            this.treeFiles.Size = new System.Drawing.Size(307, 452);
             this.treeFiles.TabIndex = 0;
             this.treeFiles.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.treeFiles_NodeMouseClick);
+            // 
+            // dfsNewPath
+            // 
+            this.dfsNewPath.DataBindings.Add(new System.Windows.Forms.Binding("Text", global::onSoft.Properties.Settings.Default, "newPath", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
+            this.dfsNewPath.Location = new System.Drawing.Point(612, 44);
+            this.dfsNewPath.Name = "dfsNewPath";
+            this.dfsNewPath.Size = new System.Drawing.Size(374, 20);
+            this.dfsNewPath.TabIndex = 7;
+            this.dfsNewPath.Text = global::onSoft.Properties.Settings.Default.newPath;
             // 
             // UserControl1
             // 
@@ -205,14 +189,13 @@
         private System.Windows.Forms.Button btnCopyCode;
         private System.Windows.Forms.RichTextBox txtcode;
         private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.TextBox dfsOutputClass;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.TextBox dfsInputClass;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.TextBox dfsUrl;
         private System.Windows.Forms.ToolTip toolTip1;
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.TreeView treeFiles;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label lblBaseTemplate;
+        private System.Windows.Forms.Label lblPostTemplate;
+        private System.Windows.Forms.Label lblGetTemplate;
+        private System.Windows.Forms.TextBox dfsNewPath;
     }
 }

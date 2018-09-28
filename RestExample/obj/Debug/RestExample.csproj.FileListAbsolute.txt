@@ -14,4 +14,6 @@ C:\Projects\RequestToRestSharp\RestExample\obj\Debug\RestExample.Properties.Reso
 C:\Projects\RequestToRestSharp\RestExample\obj\Debug\RestExample.csproj.GenerateResource.Cache
 C:\Projects\RequestToRestSharp\RestExample\obj\Debug\RestExample.exe
 C:\Projects\RequestToRestSharp\RestExample\obj\Debug\RestExample.pdb
+C:\Projects\RequestToRestSharp\RestExample\obj\Debug\RestExample.csproj.CoreCompileInputs.cache
+C:\Projects\RequestToRestSharp\RestExample\obj\Debug\RestExample.csproj.CopyComplete
 C:\Projects\RequestToRestSharp\RestExample\obj\Debug\RestExample.csprojResolveAssemblyReference.cache
